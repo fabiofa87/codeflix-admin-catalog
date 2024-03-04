@@ -21,3 +21,12 @@ class TestInMemoryCategoryReposittry:
         result = repository.get_by_id(category.id)
 
         assert result == category
+
+    def test_delete_category(self):
+        category = Category(name="Filme", description="Filme description")
+        repository = InMemoryCategoryRepository(categories=[category])
+
+        repository.delete(category.id)
+
+        assert len(repository.categories) == 0
+        assert repository.get_by_id(category.id) is None

@@ -1,7 +1,8 @@
 
 from uuid import UUID
+from src.core.category.application.use_cases.create_category import CreateCategoryRequest, CreateCategory
 from src.core.category.infra.in_memory_category_repository import InMemoryCategoryRepository
-from src.core.category.application.create_category import CreateCategory, CreateCategoryRequest
+
 
 
 
