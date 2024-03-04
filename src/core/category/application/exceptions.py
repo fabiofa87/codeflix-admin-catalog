@@ -1,0 +1,2 @@
+class InvalidcategoryData(Exception):
+    pass
