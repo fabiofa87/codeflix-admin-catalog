@@ -7,5 +7,5 @@ class CategoryNotFound(Exception):
 class CategoryAlreadyExists(Exception):
     pass
 
-class InvalidUpdateCategory(Exception):
+class InvalidCategory(Exception):
     pass
