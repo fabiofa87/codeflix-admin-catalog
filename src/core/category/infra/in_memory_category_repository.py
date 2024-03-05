@@ -26,4 +26,6 @@ class InMemoryCategoryRepository(CategoryRepository):
             self.delete(category.id)
             self.categories.append(category)
         
+    def get_all(self) -> list[Category]:
+        return [category for category in self.categories]
         
