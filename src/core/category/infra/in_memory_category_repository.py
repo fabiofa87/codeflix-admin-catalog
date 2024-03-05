@@ -22,6 +22,8 @@ class InMemoryCategoryRepository(CategoryRepository):
 
     def update(self, category: Category) -> None:
         category = self.get_by_id(id)
-        category = category
-        self.save(category)
+        if category:
+            self.delete(category.id)
+            self.categories.append(category)
+        
         
