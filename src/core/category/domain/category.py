@@ -11,6 +11,11 @@ class Category:
     def __post_init__(self):
         self.validate()
         
+
+    def __eq__(self, other):
+        if not isinstance(other, Category):
+            return False
+        return self.id == other.id
     
     def update_category(self, name, description):
         self.name = name
