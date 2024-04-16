@@ -9,6 +9,8 @@ from core.category.application.use_cases.exceptions import CategoryNotFound
 from core.category.application.use_cases.get_category import GetCategory, GetCategoryRequest
 from core.category.application.use_cases.list_category import ListCategoryRequest, ListCategory
 from django_project.category_app.repository import DjangoORMCategoryRepository
+from django_project.category_app.serializers import ListCategoryResponseSerializer, RetrieveCategoryRequestSerializer, \
+    CategoryResponseSerializer
 
 
 class CategoryViewSet(viewsets.ViewSet):
@@ -17,36 +19,24 @@ class CategoryViewSet(viewsets.ViewSet):
         use_case = ListCategory(repository=DjangoORMCategoryRepository())
         output = use_case.execute(input)
 
-        categories = [{
-            "id": str(category.id),
-            "name": category.name,
-            "description": category.description,
-            "is_active": category.is_active
-        } for category in output.data]
+        serializer = ListCategoryResponseSerializer(instance=output)
 
-        return Response(status=HTTP_200_OK, data=categories)
+        return Response(status=HTTP_200_OK, data=serializer.data)
 
     def retrieve(self, request, pk=None):
-        try:
-            category_pk = UUID(pk)
-        except ValueError:
-            return Response(status=HTTP_400_BAD_REQUEST)
+        serializer = RetrieveCategoryRequestSerializer(data={"id": pk})
+        serializer.is_valid(raise_exception=True)
 
         use_case = GetCategory(repository=DjangoORMCategoryRepository())
 
         try:
-            result = use_case.execute(request=GetCategoryRequest(id=category_pk))
+            result = use_case.execute(request=GetCategoryRequest(id=serializer.validated_data["id"]))
         except CategoryNotFound:
             return Response(status=HTTP_404_NOT_FOUND)
 
-        category_output = {
-            "id": str(result.id),
-            "name": result.name,
-            "description": result.description,
-            "is_active": result.is_active
-        }
+        category_output = CategoryResponseSerializer(instance=result)
 
-        return Response(status=HTTP_200_OK, data=category_output)
+        return Response(status=HTTP_200_OK, data=category_output.data)
 
     def create(self, request):
         pass

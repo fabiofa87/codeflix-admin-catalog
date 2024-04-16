@@ -9,6 +9,7 @@ from src.core.category.domain.category_repository import CategoryRepository
 class GetCategoryRequest:
     id: UUID
 
+
 @dataclass
 class GetCategoryResponse:
     id: UUID
@@ -16,16 +17,17 @@ class GetCategoryResponse:
     description: str
     is_active: bool
 
+
 class GetCategory:
     def __init__(self, repository: CategoryRepository):
         self.repository = repository
 
     def execute(self, request: GetCategoryRequest) -> GetCategoryResponse:
         category = self.repository.get_by_id(request.id)
-        
+
         if category is None:
             raise CategoryNotFound(f'Category with id {request.id} not found')
-        
+
         return GetCategoryResponse(
             id=category.id,
             name=category.name,

@@ -48,24 +48,26 @@ class TestCategoryAPI:
         url = "/api/categories/"
         response = APIClient().get(url)
 
-        expected_data = [
-            {
-                "id": str(category_movie.id),
-                "name": category_movie.name,
-                "description": category_movie.description,
-                "is_active": True
-            },
-            {
-                "id": str(category_serie.id),
-                "name": category_serie.name,
-                "description": category_serie.description,
-                "is_active": True
-            }
-        ]
+        expected_data = {
+            "data":
+                [
+                    {
+                        "id": str(category_movie.id),
+                        "name": category_movie.name,
+                        "description": category_movie.description,
+                        "is_active": True
+                    },
+                    {
+                        "id": str(category_serie.id),
+                        "name": category_serie.name,
+                        "description": category_serie.description,
+                        "is_active": True
+                    }
+                ]}
 
         assert response.status_code == 200
         assert response.json() == expected_data
-        assert len(response.data) == 2
+        assert len(response.data["data"]) == 2
 
 
 @pytest.mark.django_db
@@ -81,21 +83,20 @@ class TestRetrieveAPI:
         url = f"/api/categories/{category_movie.id}/"
         response = APIClient().get(url)
 
-        expected_data = {
-            "id": str(category_movie.id),
-            "name": "Movie",
-            "description": "Movie description",
-            "is_active": True
-        }
+        expected_data = {"data":
+                             {"id": str(category_movie.id),
+                              "name": "Movie",
+                              "description": "Movie description",
+                              "is_active": True}
+                         }
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == expected_data
+        assert response.json() == expected_data["data"]
 
-    def test_return_404_when_category_not_exists(self):
+    def test_return_404_when_category_not_exists(self) -> None:
         random_id = str(uuid.uuid4())
 
         url = f"/api/categories/{random_id}/"
         response = APIClient().get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-
