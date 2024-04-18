@@ -1,5 +1,5 @@
-import uuid
 from uuid import UUID, uuid4
+
 
 import pytest
 from rest_framework import status
@@ -31,7 +31,7 @@ def category_serie():
 
 
 @pytest.mark.django_db
-class TestCategoryAPI:
+class TestListAPI:
     def test_when_id_is_invalid_return_bad_request(self, category_repository: DjangoORMCategoryRepository):
         url = "/api/categories/invalid_id/"
         response = APIClient().get(url)
@@ -91,12 +91,46 @@ class TestRetrieveAPI:
                          }
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == expected_data["data"]
+        assert response.json() == expected_data
 
     def test_return_404_when_category_not_exists(self) -> None:
-        random_id = str(uuid.uuid4())
+        random_id = str(uuid4())
 
         url = f"/api/categories/{random_id}/"
         response = APIClient().get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+@pytest.mark.django_db
+class TestCreateAPI:
+    def test_when_payload_is_invalid_and_return_400(self) -> None:
+        url = "/api/categories/"
+        response = APIClient().post(
+            url,
+            data={
+                "name": "",
+                "description": "Movie description",
+            }
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_when_payload_is_valid_return_201(self, category_repository: DjangoORMCategoryRepository) -> None:
+        url = "/api/categories/"
+        response = APIClient().post(
+            url,
+            data={
+                "name": "Movie",
+                "description": "Movie description",
+            }
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["id"]
+
+        saved_category = category_repository.get_by_id(response.data["id"])
+        assert saved_category == Category(
+            id=UUID(response.data["id"]),
+            name="Movie",
+            description="Movie description",
+            is_active=True,
+        )
