@@ -220,3 +220,74 @@ class TestDeleteAPI:
         response = APIClient().delete(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestPartiallyUpdateCategory:
+    def test_when_category_exists_patch_description(self, category_movie: Category,
+                                                    category_repository: DjangoORMCategoryRepository) -> None:
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().patch(
+            url,
+            data={
+                "description": "New description",
+            }
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        updated_category = category_repository.get_by_id(category_movie.id)
+        assert updated_category.description == "New description"
+        assert updated_category.name == "Movie"
+        assert updated_category.is_active is True
+
+    def test_when_category_exists_patch_name(self, category_movie: Category,
+                                             category_repository: DjangoORMCategoryRepository) -> None:
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().patch(
+            url,
+            data={
+                "name": "New name",
+            }
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        updated_category = category_repository.get_by_id(category_movie.id)
+        assert updated_category.name == "New name"
+        assert updated_category.description == "Movie description"
+        assert updated_category.is_active is True
+
+    def test_when_category_exists_patch_is_active(self, category_movie: Category,
+                                                  category_repository: DjangoORMCategoryRepository) -> None:
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().patch(
+            url,
+            data={
+                "is_active": False,
+            }
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        updated_category = category_repository.get_by_id(category_movie.id)
+        assert updated_category.is_active is False
+        assert updated_category.name == "Movie"
+        assert updated_category.description == "Movie description"
+
+
+    def test_when_category_not_exists_patch_return_404(self) -> None:
+        random_id = str(uuid4())
+
+        url = f"/api/categories/{random_id}/"
+        response = APIClient().patch(
+            url,
+            data={
+                "name": "New name",
+            }
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
