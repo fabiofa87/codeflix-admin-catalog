@@ -1,22 +1,23 @@
-from uuid import UUID
 
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_400_BAD_REQUEST, HTTP_201_CREATED, \
+from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_201_CREATED, \
     HTTP_204_NO_CONTENT
 
-from core.category.application.use_cases.create_category import CreateCategory, CreateCategoryRequest
-from core.category.application.use_cases.exceptions import CategoryNotFound, InvalidcategoryData
-from core.category.application.use_cases.get_category import GetCategory, GetCategoryRequest
-from core.category.application.use_cases.list_category import ListCategoryRequest, ListCategory
-from django_project.category_app.repository import DjangoORMCategoryRepository
-from django_project.category_app.serializers import ListCategoryResponseSerializer, RetrieveCategoryRequestSerializer, \
-    CategoryResponseSerializer, CreateCategoryRequestSerializer, CreateCategoryResponseSerializer, \
+from src.core.category.application.use_cases.create_category import CreateCategory, CreateCategoryRequest
+from src.core.category.application.use_cases.exceptions import CategoryNotFound
+
+from src.core.category.application.use_cases.get_category import GetCategory, GetCategoryRequest
+from src.core.category.application.use_cases.list_category import ListCategoryRequest, ListCategory
+from src.django_project.category_app.repository import DjangoORMCategoryRepository
+from src.django_project.category_app.serializers import ListCategoryResponseSerializer, RetrieveCategoryRequestSerializer, \
+    CreateCategoryRequestSerializer, CreateCategoryResponseSerializer, \
     RetrieveCategoryResponseSerializer
 
+from src.core.category.application.use_cases.delete_category import DeleteCategoryRequest, DeleteCategory
 from src.core.category.application.use_cases.update_category import UpdateCategoryRequest, UpdateCategory
-from src.django_project.category_app.serializers import UpdateCategoryRequestSerializer
+from src.django_project.category_app.serializers import UpdateCategoryRequestSerializer, DeleteCategoryRequestSerializer
 
 
 class CategoryViewSet(viewsets.ViewSet):
@@ -82,8 +83,20 @@ class CategoryViewSet(viewsets.ViewSet):
             status=HTTP_204_NO_CONTENT
         )
 
-    def partial_update(self, request: Request, pk=None):
-        pass
+    def destroy(self, request: Request, pk=None) -> Response:
+        serializer = DeleteCategoryRequestSerializer(data={"id": pk})
+        serializer.is_valid(raise_exception=True)
 
-    def destroy(self, request: Request, pk=None):
-        pass
+        input = DeleteCategoryRequest(**serializer.validated_data)
+        use_case = DeleteCategory(repository=DjangoORMCategoryRepository())
+
+        try:
+            use_case.execute(request=input)
+        except CategoryNotFound:
+            return Response(
+                status=HTTP_404_NOT_FOUND
+            )
+
+        return Response(
+            status=HTTP_204_NO_CONTENT
+        )

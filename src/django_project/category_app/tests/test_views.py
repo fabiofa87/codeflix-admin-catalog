@@ -4,8 +4,8 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.category.domain.category import Category
-from django_project.category_app.repository import DjangoORMCategoryRepository
+from src.core.category.domain.category import Category
+from src.django_project.category_app.repository import DjangoORMCategoryRepository
 
 
 @pytest.fixture
@@ -197,5 +197,26 @@ class TestUpdateAPI:
             },
 
         )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestDeleteAPI:
+    def test_when_category_exists_return_204(self, category_movie: Category,
+                                             category_repository: DjangoORMCategoryRepository) -> None:
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().delete(url)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        # assert category_repository.list() == []
+        assert category_repository.get_by_id(category_movie.id) is None
+
+    def test_when_category_not_exists_return_404(self) -> None:
+        random_id = str(uuid4())
+
+        url = f"/api/categories/{random_id}/"
+        response = APIClient().delete(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
