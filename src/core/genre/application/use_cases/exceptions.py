@@ -1,0 +1,3 @@
+class InvalidGenreData(Exception):
+    pass
+
