@@ -13,9 +13,7 @@ class DeleteGenre:
         self.repository = repository
 
     def execute(self, request: DeleteGenreRequest) -> None:
-        genre = self.repository.get_by_id(request.id)
+        if self.repository.get_by_id(request.id) is None:
+            raise GenreNotFound(f'Genre with id {request.id} not found')
 
-        if genre is None:
-            raise GenreNotFound(f"Genre with {request.id} not found")
-
-        self.repository.delete(genre)
+        self.repository.delete(request.id)
